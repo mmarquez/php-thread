@@ -5,13 +5,13 @@ namespace com\vorticesoft\Utils;
  * @name Thread.php
  * @author Alex Snet ( me@alexsnet.ru )
  * @author Moisés Márquez (https://github.com/mmarquez)
- * @version 1.1
+ * @version 1.1.1
  * @copyright free for use
  * @category forking
  * @category system
  */
 class Thread{
-  public $child = false;
+	public $child = false;
 	private $pid = false;
 	private $file;
 	private $tmpdir;
@@ -40,7 +40,7 @@ class Thread{
 			$this->tmpdir = '/tmp/'.md5($this->file . time());
 			mkdir($this->tmpdir);
 		}
-		if (is_dir("{$this->tmpdir}/vars")){
+		if (!is_dir("{$this->tmpdir}/vars")){
 			mkdir($this->tmpdir.'/vars');
 		}
 	}
@@ -94,16 +94,16 @@ class Thread{
 	public function __set($var,$val){
 		$vall = $this->{$var};
 		if($vall!=$val){
-			$fp = fopen($this->tmpdir.'/vars/'.md5($var), "w");
-			if (flock($fp, LOCK_EX)){
-			    fwrite($fp, serialize($val));
-			    flock($fp, LOCK_UN);
-			}else{
-				$this->{$var} = $val;
+			if ($fp = fopen($this->tmpdir.'/vars/'.md5($var), "w")){
+				if (flock($fp, LOCK_EX)){
+				    fwrite($fp, serialize($val));
+				    flock($fp, LOCK_UN);
+				}else{
+					$this->{$var} = $val;
+				}
+				fclose($fp);
 			}
-			fclose($fp);
 		}
-		echo $var. ' : ' . serialize($val) . chr(10);
 	}
 
 	/**
