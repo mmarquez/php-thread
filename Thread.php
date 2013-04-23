@@ -82,7 +82,7 @@ class Thread{
 	}
 
 	/**
-	 * Allows the communication between proccess.
+	 * Allows the communication between process.
 	 * @param String $var The name of the variable to read
 	 * @return String The value of the variable
 	 */
@@ -96,7 +96,7 @@ class Thread{
 	}
 
 	/**
-	 * Allows the communication between proccess.
+	 * Allows the communication between processes.
 	 * Send the value of the specified variable.
 	 * @param String $var The name of the variable to write
 	 * @param void* $val A serializable value to write
@@ -117,7 +117,7 @@ class Thread{
 	}
 
 	/**
-	 * Init the child proccesses
+	 * Init the child processes
 	 */
 	public function startThreads($count=0){
 		mkdir($this->tmpdir.'/threads');
@@ -152,7 +152,7 @@ class Thread{
 
 	/**
 	 * Write the messages to a file in the temporal dir with the id of the child.
-	 * Only works if the proccess is a child.
+	 * Only works if the process is a child.
 	 */
 	public function write($messages){
 		if (is_object($messages)){
@@ -167,8 +167,8 @@ class Thread{
 	}
 
 	/**
-	 * Try to read the information written by the proccess.
-	 * @param int $pid The pid of the proccess to read
+	 * Try to read the information written by the process.
+	 * @param int $pid The pid of the process to read
 	 * @return Object|String Return an object with the written information or false in error.
 	 */
 	public function read($pid){
