@@ -1,11 +1,9 @@
 <?php
-namespace com\vorticesoft\Utils;
-
 /**
  * @name Thread.php
  * @author Alex Snet ( me@alexsnet.ru )
  * @author Moisés Márquez (https://github.com/mmarquez)
- * @version 1.1.1
+ * @version 1.1.2
  * @copyright free for use
  * @category forking
  * @category system
@@ -17,14 +15,19 @@ class Thread{
 	private $tmpdir;
 	private $children = array();
 	private $vars = array();
-	private $childPIDs = array();
 	
 	public function __construct($argv,$argc){
 		$GET = array();
 		$this->pid = getmypid();
-		$this->file = str_replace(' ','\ ',getcwd()).'/'.$argv[0];
+
+		if ($argc != null){
+			$this->file = str_replace(' ','\ ',getcwd()).'/'.$argv[0];
+		}else{
+			$this->file = $argv;
+		}
+
 		for($i=1;$i<$argc;$i++){
-			if(substr($argv[$i],0,1)=='-' and ( isset($argv[($i+1)]) and substr($argv[($i+1)],0,1)!=='-')){
+			if(substr($argv[$i],0,1)=='-' && ( isset($argv[($i+1)]) && substr($argv[($i+1)],0,1)!=='-')){
 				$GET[substr($argv[$i],1)] = $argv[($i+1)];
 				$i++;
 			}else{
@@ -35,10 +38,17 @@ class Thread{
 		if(isset($this->vars['tmpdir'])){
 			$this->child = $this->vars['pid'];
 			$this->tmpdir = $this->vars['tmpdir'];
-			@ $this->ChildPIDs[$GET['pid']] = $this->pid;
 		}else{
 			$this->tmpdir = '/tmp/'.md5($this->file . time());
 			mkdir($this->tmpdir);
+			$limitTime = "60";
+			$now = 0;
+			while (!is_dir($this->tmpdir)){
+				if ($now < $limitTime){
+					sleep(1);
+					$now++;
+				}
+			}
 		}
 		if (!is_dir("{$this->tmpdir}/vars")){
 			mkdir($this->tmpdir.'/vars');
@@ -111,10 +121,19 @@ class Thread{
 	 */
 	public function startThreads($count=0){
 		mkdir($this->tmpdir.'/threads');
+		$limitTime = "60";
+			$now = 0;
+			while (!is_dir($this->tmpdir.'/threads')){
+				if ($now < $limitTime){
+					sleep(1);
+					$now++;
+				}
+			}
 		for($i=1;$i<=$count;$i++){
 			$pid = $this->tmpdir.'/threads/'.$i.'.pid';
-			$this->children[$i]['pid'] = popen("php {$this->file} -tmpdir {$this->tmpdir} -pid {$i} > {$pid}&",'r');
+			$this->children[$i]['pid'] = popen("php {$this->file} -tmpdir {$this->tmpdir} -pid {$i} > {$pid} 2> {$this->tmpdir}_{$i}.log &",'r');
 		}
+		sleep(1);
 	}
 
 	/**
@@ -123,7 +142,11 @@ class Thread{
 	public function childs(){
 		$dd = 0;
 		$darr = scandir($this->tmpdir.'/threads/');
-		foreach($darr as $d) if($d!='.' && $d!='..') $dd++;
+		foreach($darr as $d){
+			if($d!='.' && $d!='..'){
+				$dd++;	
+			}
+		} 
 		return $dd;
 	}
 
@@ -132,15 +155,14 @@ class Thread{
 	 * Only works if the proccess is a child.
 	 */
 	public function write($messages){
-		if ($this->child){
-			if(!is_array($messages)){
-				$messages = array($messages);
+		if (is_object($messages)){
+			if ($this->child){
+				$str = json_encode($messages);
+				
+				$f = fopen($this->tmpdir.'/'.$this->child.'.pid','a');
+				fwrite($f,$str);
+				fclose($f);
 			}
-			$str = json_encode($messages);
-			
-			$f = fopen($this->tmpdir.'/'.$this->child.'.pid','a');
-			fwrite($f,$str);
-			fclose($f);
 		}
 	}
 
