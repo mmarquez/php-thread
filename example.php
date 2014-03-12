@@ -3,7 +3,6 @@
  * Example of use of the class Thread.
  */
 include "Thread.php";
-use com\vorticesoft\Utils\Thread;
 
 $app = new Thread($argv,$argc);
 
